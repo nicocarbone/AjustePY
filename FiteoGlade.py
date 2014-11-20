@@ -427,15 +427,29 @@ class MainWindow:
             #Append the results to the Result Store, so they showed in the GUI table.
             if type_fit == 1:
                 if t0_fixed == 0:
-                    self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], popt[2], math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    if type(pcov) != float: #Check for Inf variances (it pcov is float and not a list, it is probably Inf). They make the append fail.
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], popt[2], math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    else:
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], popt[2], 0., 0., 0., norm])
+
                 elif t0_fixed == 1:
-                    self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], t0_init, math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    if type(pcov) != float: #Check for Inf variances (it pcov is float and not a list, it is probably Inf). They make the append fail.
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], t0_init, math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    else:
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Slab", popt[0], popt[1], t0_init, 0., 0., 0., norm])
+
             elif type_fit == 2:
                 if t0_fixed == 0:
-                    self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi-Inf", popt[0], popt[1], popt[2], math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    if type(pcov) != float: #Check for Inf variances (it pcov is float and not a list, it is probably Inf). They make the append fail.
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi-Inf", popt[0], popt[1], popt[2], math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    else:
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi-Inf", popt[0], popt[1], popt[2], 0., 0., 0., norm])
                 elif t0_fixed == 1:
-                    self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi_Inf", popt[0], popt[1], t0_init, math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])           
-            
+                    if type(pcov) != float: #Check for Inf variances (it pcov is float and not a list, it is probably Inf). They make the append fail.
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi_Inf", popt[0], popt[1], t0_init, math.sqrt(pcov[0,0]), math.sqrt(pcov[1,1]), math.sqrt(pcov[2,2]), norm])
+                    else:
+                        self.ResultStore.append([index, ntpath.basename(filename), file_result, "Semi_Inf", popt[0], popt[1], t0_init, 0., 0., 0., norm])
+ 
             #Append results to the results dictionary
             if t0_fixed == 0:            
                 results.setdefault(index, []).append(ntpath.basename(filename))         
