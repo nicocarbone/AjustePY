@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb  6 11:11:00 2014
@@ -7,7 +8,6 @@ Created on Thu Feb  6 11:11:00 2014
 GUI Glade implementation
 """
 
-#!/usr/bin/env python
 
 #imports
 import pygtk
@@ -58,11 +58,12 @@ def process_data(data_read, instru_read, skip):
         skip: Number of lines to skip in the header of the files
     """
     global data
-    print instru_read
+    print (instru_read)
     fm.data = np.genfromtxt(data_read, comments = '*', skip_header = int(skip)) #Read data from file
     fm.instru = np.genfromtxt(instru_read, comments = '*', skip_header = int(skip)) #Read data from file
     fm.instru = fm.instru / fm.instru.sum() #Normalize response function to area=1
-    fm.data = fm.data / fm.smooth(fm.data).max() #Normalize experimental data with maximum smoothed version
+    #fm.data = fm.data / fm.smooth(fm.data).max() #Normalize experimental data with maximum smoothed version
+    fm.data = fm.data / np.trapz(fm.data) #Normalize experimental data with area 
     fm.max_temp = 50./gain #TCSPC temporal window size: 50ns/gain
     fm.temp_data = np.arange(0,fm.max_temp,fm.max_temp/float(fm.data.size)) #Generate temporal x-axis array    
    
@@ -236,13 +237,13 @@ class MainWindow:
 
     def SelectSlab_toggled_cb(self, widget, data = None):
         global type_fit
-        print "Slab" 
+        print ("Slab") 
         type_fit = 1
         self.Sep.set_editable(True)
     
     def SelectSemiInf_toggled_cb(self, widget, data = None):
         global type_fit
-        print "SemiInf"        
+        print ("SemiInf")        
         type_fit = 2
         self.Sep.set_text("N/A")
         self.Sep.set_editable(False)
@@ -289,7 +290,7 @@ class MainWindow:
             t0_fixed = 1
         else:
             t0_fixed = 0
-        print t0_fixed
+        print (t0_fixed)
         
     
     def FileDataButton_clicked_cb(self, widget, data=None): 
@@ -308,7 +309,7 @@ class MainWindow:
             self.FileData.set_text(text)
             file_data=self.FileChooserDialogMulti.get_filenames()
         elif response == gtk.RESPONSE_CANCEL:
-            print 'Closed, no files selected'
+            print ('Closed, no files selected')
         self.FileChooserDialogMulti.hide()
         
     def FileInstruButton_clicked_cb(self, widget, data=None):
@@ -323,7 +324,7 @@ class MainWindow:
             self.FileInstru.set_text(text)
             file_instru = self.FileChooserDialog.get_filename()
         elif response == gtk.RESPONSE_CANCEL:
-            print 'Closed, no files selected'
+            print ('Closed, no files selected')
         self.FileChooserDialog.hide()
 
     def PlotButton_clicked_cb(self, widget, data=None):
@@ -367,7 +368,7 @@ class MainWindow:
                 export_file.write(str(k) + "\t" + str(v[0]) + "\t" + str(v[1]) + "\t" + str(v[2]) + "\t" + str(v[3]) + "\t" + str(v[5]) + "\n")
             export_file.close()
         elif response == gtk.RESPONSE_CANCEL:
-            print 'Closed, no files selected'
+            print ('Closed, no files selected')
         self.FileChooserDialogSave.hide()
     
     def ClearButton_clicked_cb(self, widget, data=None):
@@ -385,7 +386,7 @@ class MainWindow:
         global results
         global file_instru
         global index        
-        print file_instru, file_data, file_result, ups_init, ua_init, t0_init
+        print (file_instru, file_data, file_result, ups_init, ua_init, t0_init)
         if not file_instru: #If file_instru is empty, the file chooser dialog was not opened (or was canceled). Use the textbox.
             file_instru = self.FileInstru.get_text()
         if not file_data: #If file_data is empty, the file chooser dialog was not opened (or was canceled). Use the textbox.
@@ -404,25 +405,25 @@ class MainWindow:
             fm.pre_calcs()
             if type_fit == 1: #Slab
                 if t0_fixed == 0:
-                    print str(type_fit) + "Slab, t0 not fixed"            
+                    print (str(type_fit) + "Slab, t0 not fixed")         
                     popt, pcov = optimize.curve_fit(fm.funcion_fiteo_slab, fm.temp_data, fm.data, init_vals)
                     Y = fm.funcion_fiteo_slab(fm.temp_data,popt[0],popt[1],popt[2],popt[3])
                 elif t0_fixed == 1:
-                    print str(type_fit) + "Slab, t0 fixed"            
+                    print (str(type_fit) + "Slab, t0 fixed")            
                     popt, pcov = optimize.curve_fit(lambda t, ups, ua, back: fm.funcion_fiteo_slab(t, ups, ua, t0_init, back), fm.temp_data, fm.data, init_vals)
                     Y = fm.funcion_fiteo_slab(fm.temp_data,popt[0],popt[1],t0_init,popt[2])
             elif type_fit == 2: #Semi-infinite
                 if t0_fixed == 0:
-                    print str(type_fit) + "Semi-infinte, t0 not fixed"
+                    print (str(type_fit) + "Semi-infinte, t0 not fixed")
                     popt, pcov = optimize.curve_fit(fm.funcion_fiteo_refl, fm.temp_data, fm.data, init_vals)
                     Y = fm.funcion_fiteo_refl(fm.temp_data,popt[0],popt[1],popt[2],popt[3])
                 elif t0_fixed == 1:
-                    print str(type_fit) + "Semi-infinte, t0 fixed"
+                    print (str(type_fit) + "Semi-infinte, t0 fixed")
                     popt, pcov = optimize.curve_fit(lambda t, ups, ua, back: fm.funcion_fiteo_refl(t, ups, ua, t0_init, back), fm.temp_data, fm.data, init_vals)
                     Y = fm.funcion_fiteo_refl(fm.temp_data,popt[0],popt[1],t0_init,popt[2])
-            print "Fitted values: ", popt
+            print ("Fitted values: ", popt)
             norm = ((Y-fm.data)**2).sum()           
-            print "Norm: ", norm
+            print ("Norm: ", norm)
             
             #Append the results to the Result Store, so they showed in the GUI table.
             if type_fit == 1:
