@@ -25,7 +25,7 @@ def smooth(x, window_len=10, window='hanning'):
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
 
-    if x.size < window_len:
+    if len(x) < window_len:
         raise ValueError("Input vector needs to be bigger than window size.")
 
     if window_len < 3:
@@ -138,7 +138,7 @@ def funcion_fiteo_slab(t, ups, ua, back, t0, n, ro, sep, instru, temp_data, firs
     return np.interp(t, temp_data, array_conv) + back
 
 
-def process_data(data_read, instru_read, skip, gain):
+def process_data(data_read, instru_read, skip, gain, smoothStr):
     """ Process the data files
 
     Load data from text file and normalizes it. It also create the temporal data if necesary        
@@ -154,6 +154,10 @@ def process_data(data_read, instru_read, skip, gain):
     # print(len(data))
     instru = np.genfromtxt(instru_read, comments='*',
                            skip_header=int(skip))  # Read data from file
+    if smoothStr > 0:
+        data = smooth(data, window_len=smoothStr)
+        instru = smooth(instru, window_len=smoothStr)
+        
     instru = instru / instru.sum()  # Normalize response function to area=1
     # fm.data = fm.data / fm.smooth(fm.data).max() #Normalize experimental data with maximum smoothed version
     max_temp = 50./gain  # TCSPC temporal window size: 50ns/gain
@@ -211,7 +215,7 @@ def write_results(idx, data_read, fileExt, type_fit, results, ups_init, ua_init,
     results_file.write("Norm: " + str(results[idx][5]) + "\n")
 
 
-def FitFunction(file_instru, file_data, file_result, ups_init, ua_init, t0_init, back_init, type_fit, t0_fixed, sep, ro, n_ref, file_head, gain, cutThr=0, writeExternalResults = True):
+def FitFunction(file_instru, file_data, file_result, ups_init, ua_init, t0_init, back_init, type_fit, t0_fixed, sep, ro, n_ref, file_head, gain, cutThr=0, smoothStr = 0, writeExternalResults = True):
     """ Main fitting function
 
     After pressing "Fit" button, this functions calls the curve_fit function with the apropiate model
@@ -234,7 +238,7 @@ def FitFunction(file_instru, file_data, file_result, ups_init, ua_init, t0_init,
     for filename in file_data:  # Loop through the experimental files.
         index = index+1
         temp_data, data, instru = process_data(
-            filename, file_instru, file_head, gain)
+            filename, file_instru, file_head, gain, smoothStr)
 
         if cutThr == 0:
             first_nonzero_data = np.nonzero(data)[0][0]
